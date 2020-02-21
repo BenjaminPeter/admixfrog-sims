@@ -2,8 +2,8 @@ from pprint import pprint
 import pandas as pd
 from scripts.expand_series import update_all
 from scripts.admixfrog_input import admixfrog_input, admixfrog_ids
-configfile : "sims.yaml"
-#localrules: merge_true
+configfile : "config/sims.yaml"
+
 C=config
 
 N_SAMPLES =  8
@@ -50,7 +50,7 @@ rule run_sim:
         if 'a_den' in demo:
             n += ' --a-den ' + " ".join(f"{i} {i}" for i in demo['a_den'])
 
-        exe = '../demography/demography_deni.py'
+        exe = '../demography/demography_deni3.py'
         pars = '--writesnps  --introgression nea-eur eur-nea nea-den den-nea den-eur eur-den' 
         opt = ' --output-prefix sims/{wildcards.sim}/{wildcards.chrom}/{wildcards.demo}.{wildcards.rep}'
         chrom = " --chrom {wildcards.chrom} "
