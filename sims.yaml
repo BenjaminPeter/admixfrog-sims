@@ -1,0 +1,249 @@
+sim:
+    __default__ :
+        seq_len : 50_000_000
+        rec : ["Physical_Pos"]
+        rec_obs : ["Physical_Pos"]
+        all_deni : False
+
+coverage : 
+    __default__ :
+        coverage : [[1, 0]]
+        ascertainment : ['archaic']
+
+demography:
+    __default__ :
+        n_afr : 40
+        n_asn : 0
+        t_gf_neaeur : 50000
+        d_gf_neaeur : 25
+        m_gf_neaeur_rev: 0
+        m_gf_neaeur : 0.03
+        t_gf_neaden : 120000
+        d_gf_neaden : 25
+        m_gf_neaden_rev: 0.05
+        m_gf_neaden : 0.03
+        t_gf_deneur : 0
+        d_gf_deneur : 0
+        m_gf_deneur_rev: 0.0
+        m_gf_deneur : 0.0
+        target : ['AFR']
+
+admixfrog:
+    __default__ :
+        bin_size: 10000
+        state_ids: ["AFR", "NEA"]
+        cont_id : ['AFR']
+rle:
+    __default__ :
+        run_penalty : .4
+
+series:
+    rle:
+        r_all:
+            run_penalty: [0.1, 0.2, 0.3, 0.4]
+        r_basic :
+            run_penalty : [0.2]
+        RBasic :
+            run_penalty : [0.4]
+        R2 :
+            run_penalty : [0.2]
+        RTest5 :
+            run_penalty : [0.1, 0.2, 0.3, 0.4, 0.5]
+    demography:
+        DHuman1: #scenario a1
+            a_eur : [[49000, 49000, 45000, 45000, 30000,30000, 0, 0]]
+            m_gf_neaeur : [0.03]
+            t_gf_neaeur : [50000]
+        DHuman_prop_simple1: #scenario a3
+            a_eur : [[49000, 49000, 45000, 45000, 30000,30000, 0, 0]]
+            m_gf_neaeur : [0.03]
+            t_gf_neaeur : [50000]
+            m_gf_deneur : [0.002]
+            t_gf_deneur : [50000]
+        DHuman_prop1: #scenario a3
+            a_eur : [[49000, 49000, 45000, 45000, 30000,30000, 0, 0]]
+            m_gf_neaeur : [0, 0.01, 0.03]
+            t_gf_neaeur : [50000]
+            m_gf_deneur : [0, 0.002, 0.01]
+            t_gf_deneur : [50000]
+        DDentime1: #scenario a2
+            a_den : [[119000, 119000, 110000, 110000, 100000, 100000, 70000, 70000]]
+            m_gf_neaden : [0.05]
+            m_gf_neaden_rev : [0.0, 0.01, 0.05]
+            t_gf_neaden : [120000]
+            d_gf_neaden : [25, 500, 10000]
+            target : ['DEN']
+        DDen1: #scenario a2
+            a_den : [[119000, 119000, 110000, 110000, 100000, 100000, 70000, 70000]]
+            m_gf_neaden : [0.05]
+            m_gf_neaden_rev : [0.0]
+            t_gf_neaden : [120000]
+            d_gf_neaden : [25]
+            target : ['DEN']
+    admixfrog:
+        A4binsMH: #a1
+            bin_size : [2000, 5000, 10000, 20000]
+            state_ids: [["AFR", "NEA"]]
+        A1binMH: #a1
+            bin_size : [10000]
+            state_ids: [["AFR", "NEA"]]
+        A1binEUC: #a1
+            bin_size : [10000]
+            state_ids: [["AFR", "NEA"]]
+            cont_id :  ['EUR']
+        A1binDEN:
+            bin_size : [10000]
+            state_ids: [["NEA", "DEN"]]
+        A4binsDEN:
+            bin_size : [2000, 5000, 10000, 20000]
+            state_ids: [["NEA", "DEN"]]
+        AD3test:
+            bin_size : [10000]
+            state_ids: [["NEA", "D"]]
+    sim:
+        SBasic:
+            seq_len : [50_000_000 ]
+            rec : ['Physical_Pos']
+        SD3test:
+            seq_len : [50_000_000 ]
+            rec : ['Physical_Pos']
+            all_deni: True
+        s_all:
+            seq_len : [2_000_000 ]
+            rec : ['Physical_Pos','COMBINED_LD','YRI_LD','deCODE','CEU_LD','AA_Map','African_Enriched','Shared_Map']
+    coverage : 
+        CBasic:
+            coverage : [[[2, 0]]]
+            ascertainment: ['archaics']
+            rec_obs : ['Physical_Pos']
+        CHuman:
+            coverage : [[[2, 0]]]
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['Physical_Pos']
+        C4nocont:
+            coverage : [[[0.1, 0]], [[0.2, 0]], [[0.5, 0]], [[2, 0]]]
+            ascertainment: ['archaics']
+            rec_obs : ['Physical_Pos']
+        C4human:
+            coverage : [[[0.1, 0]], [[0.2, 0]], [[0.5, 0]], [[2, 0]]]
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['Physical_Pos']
+        C4Ten:
+            coverage : 
+                - [ [0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0]]
+                - [ [0.2, 0.000],[0.2, 0.010],[0.2, 0.020],[0.2, 0.030],[0.2, 0.040],[0.2, 0.050],[0.2, 0.060],[0.2, 0.070],[0.2, 0.080],[0.2, 0.090]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.020],[0.2, 0.040],[0.2, 0.120],[0.2, 0.160],[0.2, 0.200],[0.2, 0.240],[0.2, 0.280],[0.2, 0.320],[0.2, 0.360]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.050],[0.2, 0.100],[0.2, 0.150],[0.2, 0.200],[0.2, 0.250],[0.2, 0.300],[0.2, 0.350],[0.2, 0.400],[0.2, 0.450]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.100],[0.2, 0.200],[0.2, 0.300],[0.2, 0.400],[0.2, 0.500],[0.2, 0.600],[0.2, 0.700],[0.2, 0.800],[0.2, 0.900]] #Dir(1)
+            ascertainment: ['archaics']
+            rec_obs : ['Physical_Pos']
+        C4Fix:
+            coverage : 
+                - [ [0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0]]
+                - [ [0.2, 0.000],[0.2, 0.010],[0.2, 0.020],[0.2, 0.030],[0.2, 0.040],[0.2, 0.050],[0.2, 0.060],[0.2, 0.070],[0.2, 0.080],[0.2, 0.090]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.020],[0.2, 0.040],[0.2, 0.120],[0.2, 0.160],[0.2, 0.200],[0.2, 0.240],[0.2, 0.280],[0.2, 0.320],[0.2, 0.360]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.050],[0.2, 0.100],[0.2, 0.150],[0.2, 0.200],[0.2, 0.250],[0.2, 0.300],[0.2, 0.350],[0.2, 0.400],[0.2, 0.450]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.100],[0.2, 0.200],[0.2, 0.300],[0.2, 0.400],[0.2, 0.500],[0.2, 0.600],[0.2, 0.700],[0.2, 0.800],[0.2, 0.900]] #Dir(1)
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['Physical_Pos']
+        c_cont_half1:
+            coverage : 
+                - [[.5, 0], [.5, 0]]
+                - [[.5, 0], [.5, 0.1]]
+                - [[.5, 0], [.5, 0.2]]
+                - [[.5, 0], [.5, 0.5]]
+                - [[.5, 0], [.5, 1]]
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['AA_Map']
+        c_cont_half2:
+            coverage : 
+                - [[1, 0], [1, 0]]
+                - [[1, 0], [1, 0.1]]
+                - [[1, 0], [1, 0.2]]
+                - [[1, 0], [1, 0.5]]
+                - [[1, 0], [1, 1]]
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['AA_Map']
+        c_cont_ten:
+            coverage : 
+                - [ [0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0],[0.1, 0]]
+                - [ [0.1, 0.001],[0.1, 0.004],[0.1, 0.005],[0.1, 0.032],[0.1, 0.038],[0.1, 0.048],[0.1, 0.117],[0.1, 0.113],[0.1, 0.291],[0.1, 0.331]] #Dir(1)
+                - [ [0.1, 0.026],[0.1, 0.070],[0.1, 0.090],[0.1, 0.104],[0.1, 0.128],[0.1, 0.212],[0.1, 0.220],[0.1, 0.324],[0.1, 0.352],[0.1, 0.494]] #Dir(2) * 2
+                - [ [0.1, 0.008],[0.1, 0.216],[0.1, 0.256],[0.1, 0.312],[0.1, 0.324],[0.1, 0.428],[0.1, 0.476],[0.1, 0.544],[0.1, 0.660],[0.1, 0.776]] #Dir(1.5) * 4
+                - [ [0.1, 0.015],[0.1, 0.784],[0.1, 0.850],[0.1, 0.855],[0.1, 0.881],[0.1, 0.884],[0.1, 0.908],[0.1, 0.910],[0.1, 0.924],[0.1, 0.990]] #1 - 2 * Dir(1) 
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['AA_Map']
+        c_cont_ten2:
+            coverage : 
+                - [ [0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0],[0.2, 0]]
+                - [ [0.2, 0.000],[0.2, 0.010],[0.2, 0.020],[0.2, 0.030],[0.2, 0.040],[0.2, 0.050],[0.2, 0.060],[0.2, 0.070],[0.2, 0.080],[0.2, 0.090]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.020],[0.2, 0.040],[0.2, 0.120],[0.2, 0.160],[0.2, 0.200],[0.2, 0.240],[0.2, 0.280],[0.2, 0.320],[0.2, 0.360]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.050],[0.2, 0.100],[0.2, 0.150],[0.2, 0.200],[0.2, 0.250],[0.2, 0.300],[0.2, 0.350],[0.2, 0.400],[0.2, 0.450]] #Dir(1)
+                - [ [0.2, 0.000],[0.2, 0.100],[0.2, 0.200],[0.2, 0.300],[0.2, 0.400],[0.2, 0.500],[0.2, 0.600],[0.2, 0.700],[0.2, 0.800],[0.2, 0.900]] #Dir(1)
+            ascertainment: ['archaicadmixture']
+            rec_obs : ['AA_Map']
+        c_cov:
+            coverage : [[[0.01, 0]],[[0.1, 0]],[[1, 0]],[[10, 0]]]
+            ascertainment: ['none', 'archaicadmixture']
+            rec_obs : ['AA_Map']
+        c_asc:
+            coverage : [[[1, 0]]]
+            ascertainment: ['none', 'archaicadmixture']
+            rec_obs : ['AA_Map']
+
+set:
+    frag_human1:
+        admixfrog: A4binsMH
+        sim: SBasic
+        rle: RBasic
+        demography: DHuman1
+        coverage: C4nocont
+    frag_den1:
+        admixfrog: A1binDEN
+        sim: SBasic
+        rle: RBasic
+        demography: DDentime1
+        coverage: CBasic
+    cont_human3:
+        admixfrog: A1binMH
+        sim: SBasic
+        rle: RBasic
+        demography: DHuman1
+        coverage: C4Fix
+    cont_human1:
+        admixfrog: A1binMH
+        sim: SBasic
+        rle: RBasic
+        demography: DHuman1
+        coverage: C4Ten
+    cont_human2:
+        admixfrog: A1binEUC
+        sim: SBasic
+        rle: RBasic
+        demography: DHuman1
+        coverage: C4Ten
+    cont_den1:
+        admixfrog: A1binDEN
+        sim: SBasic
+        rle: RBasic
+        demography: DDen1
+        coverage: C4Ten
+    prop_human1:
+        sim: SBasic
+        rle: RBasic
+        admixfrog: A1binMH
+        coverage: C4nocont
+        demography: DHuman_prop1
+    tract_human1:
+        sim: SBasic
+        rle: RBasic
+        admixfrog: A4binsMH
+        coverage: C4nocont
+        demography: DHuman_prop_simple1
+    d3test:
+        sim: SD3test
+        rle: RBasic
+        admixfrog: AD3test
+        coverage: CBasic
+        demography: DDen1
+
