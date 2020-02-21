@@ -3,6 +3,7 @@ import pandas as pd
 from scripts.expand_series import update_all
 from scripts.admixfrog_input import admixfrog_input, admixfrog_ids
 configfile : "config/sims.yaml"
+include: 'plots.snake'
 
 C=config
 
@@ -15,6 +16,27 @@ CHROMS = range(1,21)
 update_all(config)
 #pprint(config['admixfrog'])
 
+"""
+basic outline
+1. generate simulation
+
+2.1 (Truth)
+    a. get all true fragments
+
+3.1 (Data) 
+    a. generate admixfrog input files
+    b. generate admixfrog panels
+    c. merge panels / input chromosome
+
+4. run admixfrog
+    a. run admixfrog
+    b. call fragments
+
+5. (evaluation)
+    a. compare fragments with truth
+    b. compare contamination
+
+"""
 
 
 def get_rec_true(wc):
@@ -30,23 +52,31 @@ rule run_sim:
     benchmark:
         "benchmarks/run_sim/{sim}/{chrom}/{demo}.{rep}_snps.tsv",
     output:
-        "sims/{sim}/{chrom}/{demo}.{rep}_snps.tsv.gz",
-        #"sims/{sim}/{chrom}/{demo}_stats.tsv.gz",
-        "sims/{sim}/{chrom}/{demo}.{rep}_all_haplotypes.csv.gz",
+        data="sims/{sim}/{chrom}/{demo}.{rep}_snps.tsv.gz",
+        frags="sims/{sim}/{chrom}/{demo}.{rep}_all_haplotypes.csv.gz",
     run:
+        """1. get demography and simulation settings from config"""
         demo = config['demography']['__default__'].copy()
         demo.update(config['demography'][wildcards.demo])
         sim = config['sim']['__default__'].copy()
         sim.update(config['sim'][wildcards.sim])
 
+        """2. set up gene flow events"""
         gf_nea_eur = ' --gf-nea-eur {t_gf_neaeur},{d_gf_neaeur},{m_gf_neaeur},{m_gf_neaeur_rev} '.format(**demo)
         gf_nea_den = ' --gf-nea-den {t_gf_neaden},{d_gf_neaden},{m_gf_neaden},{m_gf_neaden_rev} '.format(**demo)
         gf_den_eur = ' --gf-den-eur {t_gf_deneur},{d_gf_deneur},{m_gf_deneur},{m_gf_deneur_rev} '.format(**demo)
-        n = ' --n-afr {n_afr} --n-asn {n_asn} '.format(**demo)
+
+        """3. set up samples """
+        """   3.1reference panel sizes for african, asians and oceanians"""
+        n = ' --n-afr {n_afr} --n-asn {n_asn} --n-oce {n_oce} '.format(**demo)
+
+        """   3.2 european (early modern human test samples )  """
         if 'a_eur' in demo:
             n += ' --a-eur ' + " ".join(f"{i} {i}" for i in demo['a_eur'])
         else:
             n += ' --n-eur 0 ' 
+
+        """   3.3 Denisovan (archaic test samples )  """
         if 'a_den' in demo:
             n += ' --a-den ' + " ".join(f"{i} {i}" for i in demo['a_den'])
 
@@ -73,7 +103,6 @@ rule sample_table:
         sim.update(config['sim'][wildcards.sim])
 
         admixfrog_ids(snps, 
-            all_deni=sim['all_deni'],
             prefix=output.sample_table)
         
 
@@ -83,11 +112,10 @@ def get_rec_obs(wc):
     map_ = sim['rec_obs']
     return f"recs/hapmap/{map_}/chr{wc.chrom}.rec.gz"
 rule admixfrog_input:
+    """create admixfrog input and panel file for 1 run 1 chromosome"""
     input:
         snps="sims/{sim}/{chrom}/{demo}.{rep}_snps.tsv.gz",
         rec=get_rec_obs,
-    benchmark:
-        "benchmarks/admixfrog_input/{sim}/{chrom}/{demo}.{cov}.{rep}.txt"
     resources:
         io=1
     priority : 0
@@ -97,25 +125,21 @@ rule admixfrog_input:
         samples=temp(expand("sims/{{sim}}/{{chrom}}/{{demo}}.{{cov}}.{{rep}}.{id}.sample.txt", 
             id=range(N_SAMPLES)))
     run:
-        snps = pd.read_csv(input.snps, sep="\t")
-        rec = pd.read_csv(input.rec, sep="\t")
-
         cov = config['coverage']['__default__'].copy()
         cov.update(config['coverage'][wildcards.cov])
 
-        sim = config['sim']['__default__'].copy()
-        sim.update(config['sim'][wildcards.sim])
+        snps = pd.read_csv(input.snps, sep="\t")
+        rec = pd.read_csv(input.rec, sep="\t")
 
         coverage = [c[0] for c in cov['coverage']]
         contamination = [c[1] for c in cov['coverage']]
         asc = cov['ascertainment']
+
         admixfrog_input(snps=snps, rec=rec, chrom=wildcards.chrom, 
             coverage=coverage,
             contamination=contamination,
             ascertainment = asc,
-            all_deni=sim['all_deni'],
             prefix=".".join(output.panel.split(".")[:-2]))
-        
 
 rule merge_panel:
     input:
@@ -124,6 +148,17 @@ rule merge_panel:
     group : "sim"
     output:
         "sims/{sim}/{demo}.{cov}.{rep}.panel.xz"
+    shell:
+        "head -qn1 {input[0]} | xz -c > {output} && "
+        "tail -qn+2 {input} | xz -c >> {output} "
+
+rule merge_sample:
+    input:
+        expand("sims/{{sim}}/{chrom}/{{demo}}.{{cov}}.{{rep}}.{{id}}.sample.txt", chrom=CHROMS)
+    priority : 1020
+    group : "sim"
+    output:
+        "sims/{sim}/{demo}.{cov}.{rep}.{id}.sample.xz"
     shell:
         "head -qn1 {input[0]} | xz -c > {output} && "
         "tail -qn+2 {input} | xz -c >> {output} "
@@ -145,36 +180,11 @@ rule merge_true:
         frags="sims/{sim}/{demo}.{rep}_all_haplotypes.xz",
     script: "scripts/merge_true.R"
 
-rule merge_true_reps:
-    input:
-        f=expand("sims/{{sim}}/{{demo}}.{rep}_all_haplotypes.xz",
-            rep=range(N_REPS)),
-        idtbl ='sims/{sim}/{demo}.idtbl'
-    output:
-        frags="sims/true/{sim}/{demo}_all_haplotypes_merged.xz"
-    script: 'scripts/merge_true2.R'
-    #shell:
-    #    "set +o pipefail;"
-    #    "xzcat {input[0]} | head -n1 |  tr '\\t' , |  xz -c > {output} && "
-    #    "xzcat {input} | grep -v chrom | tr '\\t' , | xz -c >> {output} "
-
-rule merge_sample:
-    input:
-        expand("sims/{{sim}}/{chrom}/{{demo}}.{{cov}}.{{rep}}.{{id}}.sample.txt", chrom=CHROMS)
-    priority : 1020
-    group : "sim"
-    output:
-        "sims/{sim}/{demo}.{cov}.{rep}.{id}.sample.xz"
-    shell:
-        "head -qn1 {input[0]} | xz -c > {output} && "
-        "tail -qn+2 {input} | xz -c >> {output} "
 
 rule run_admixfrog:
     input:
         sample="sims/{sims}/{demo}.{cov}.{rep}.{id}.sample.xz",
         ref="sims/{sims}/{demo}.{cov}.{rep}.panel.xz",
-    benchmark:
-        "benchmarks/run_admixfrog/{pars}/{sims}/{demo}.{cov}.{rep}.{id}.txt"
     params:
         freq_f = 3,
         freq_c = 1,
@@ -185,7 +195,7 @@ rule run_admixfrog:
         error = 0.01,
     output:
         f=expand("admixfrog/{{pars}}/{{sims}}/{{demo}}.{{cov}}.{{rep}}.{{id}}.{ext}.xz",
-            ext=['bin', 'snp', 'cont', 'rle', 'res', 'res2'])
+            ext=['bin', 'cont', 'res', 'res2'])
     group: 'frags'
     run:
         wc = wildcards
@@ -204,9 +214,9 @@ rule run_admixfrog:
         s += " --e0 {params.error} "
         s += " --est-error "
         s += " --ancestral {params.ancestral} "
-        s += f" --run-penalty 0.5"
         s += " --max-iter {params.max_iter}"
         s += " --n-post-replicates {params.n_post_rep}"
+        s += " --no-snp --no-rle "
         
         print(s)
         shell(s)
@@ -218,9 +228,8 @@ rule admixfrog_frags:
         rle="rle/{pars}/{rle}/{sims}/{demo}.{cov}.{rep}.{id}.rle.xz",
     group: 'frags'
     run:
-        wc = wildcards
         pars = config['rle']['__default__'].copy()
-        pars.update(config['rle'][wc.rle])
+        pars.update(config['rle'][wildcards.rle])
         penalty = pars['run_penalty']
 
         s = "admixfrog-rle --in {input.bins} --out {output.rle} "
@@ -260,6 +269,7 @@ rule merge_simfrags_series:
     output:
         frags="series/simfrags/{af_series}/{sim_series}/{demo_series}/{cov_series}.xz"
     script: "scripts/merge_simruns.R"
+
 def _all_series(wc):
     rle = [x for x in C['rle'] if x.startswith(f"{wc.rle_series}_")]
     demo = [x for x in C['demography'] if x.startswith(f"{wc.demo_series}_")]
@@ -303,6 +313,7 @@ def _all_est_series(wc):
         raise ValueError("no input files")
     return frags
 rule merge_est_series:
+    """all estimated fragments for a series"""
     input:
         frags = _all_est_series,
         _script = "scripts/merge_est_frags.R"
@@ -333,6 +344,7 @@ rule classify_cont:
         frags="series/{af_series}/{sim_series}/{demo_series}/{cov_series}.rds"
     script: "scripts/merge_cont.R"
 
+
 rule hapmap_rec:
     input:
         rec="recs/maps_b37/maps_chr.{chrom}",
@@ -340,6 +352,7 @@ rule hapmap_rec:
     output:
         rec="recs/hapmap/{map}/chr{chrom}.rec.gz"
     script: "scripts/haprec.R"
+
 
 
 def series_cfg(wc):
@@ -354,7 +367,6 @@ def series_cfg(wc):
     s3 = f'series/simfrags/{A}/{S}/{D}/{C}.xz'
     s4 = f'series/{A}/{S}/{D}/{C}.rds'
     return s1, s2, s3, s4
-    
 rule run_series_cfg:
     input:
         series_cfg

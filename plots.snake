@@ -1,0 +1,13 @@
+rule fig_cont:
+    input:
+        'series/A1binMH/SBasic/DHuman1/C4archaicadmixture.rds',
+        'series/A3binsMH/SBasic/DHuman1/C4archaicadmixture.rds',
+        'series/A1binDEN/SBasic/DDen1/C4hcneaden.rds',
+        'series/A1binARC/SBasic/DDen1/C4hcneaden.rds',
+        'series/A1binDEN/SBasic/DDen1/C4archaics.rds',
+        _script='plotscripts/fig_cont.R',
+    output:
+        'figures/fig_cont_est_den.png',
+        'figures/fig_cont_est_mh.png',
+        
+    script: 'plotscripts/fig_cont.R'

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import binom, poisson
 def admixfrog_input(snps, rec, coverage, contamination,chrom='1', prefix='admixfrog',
-                    ascertainment=None, all_deni=False):
+                    ascertainment=None):
     if 'pos' not in snps:
         snps['pos'] = snps.index.astype(int)
     snps.pos = snps.pos.astype(int)
@@ -13,13 +13,11 @@ def admixfrog_input(snps, rec, coverage, contamination,chrom='1', prefix='admixf
     cont_cols = [col for col in snps2.columns if col.startswith("cont")] 
 
     den_cols = [col for col in snps2.columns if col.startswith("den")]
-    if all_deni:
-        den_cols = den_cols[1:]
-    else:
-        den_cols = den_cols[3:]
+    arc_cols = [col for col in snps2.columns if col.startswith("arc")]
+    den_cols = den_cols[2:]
 
 
-    samples = asn_cols + eur_cols + den_cols
+    samples = eur_cols + den_cols
     n_samples = len(samples) // 2
     samples = np.array(samples).reshape(n_samples, 2).tolist()
 
@@ -41,26 +39,23 @@ def admixfrog_input(snps, rec, coverage, contamination,chrom='1', prefix='admixf
     D["ALT_alt"] = snps2.nea0 + snps2.nea1
     D["CHA_alt"] = snps2.nea2 + snps2.nea3
     D["VIN_alt"] = snps2.nea4 + snps2.nea5
-    D["D11_alt"] = binom.rvs(1, p= (snps2.nea6 + snps2.den0) / 2.)
-    D["DEN_alt"] = snps2.den1 + snps2.den2
+    D["DEN_alt"] = snps2.den0 + snps2.den1
+    D["ARC_alt"] = snps2.arc0 + snps2.arc1
     D["CONT_alt"] = np.sum(snps2[cont_cols], 1)
 
     D["ALT_ref"] = 2 - D['ALT_alt']
     D["CHA_ref"] = 2 - D['CHA_alt']
     D["VIN_ref"] = 2 - D['VIN_alt']
     D["DEN_ref"] = 2 - D['DEN_alt']
-    D["D11_ref"] = 1 - D['D11_alt'] #pseudo-haploid
+    D["ARC_ref"] = 2 - D['ARC_alt']
     D["AFR_ref"] = n_afr - D['AFR_alt']
     D["CONT_ref"] = n_cont - D['CONT_alt']
 
-    D["PAN_alt"] = snps2.pan0 * 2
-    D["PAN_ref"] = 2 - D['PAN_alt']
+    D["PAN_alt"] = snps2.pan0 
+    D["PAN_ref"] = 1 - D['PAN_alt']
 
     D["NEA_ref"] = D['ALT_ref'] + D['VIN_ref']
     D["NEA_alt"] = D['ALT_alt'] + D['VIN_alt']
-    D["D_ref"] = D['DEN_ref'] + D['D11_ref']
-    D["D_alt"] = D['DEN_alt'] + D['D11_alt']
-
 
     if n_asn:
         D["ASN_alt"] = np.sum(snps2[asn_cols], 1)
@@ -73,16 +68,17 @@ def admixfrog_input(snps, rec, coverage, contamination,chrom='1', prefix='admixf
         filter_ = (ref.AFR_alt + ref.ALT_ref == 0) | (ref.AFR_ref + ref.ALT_alt == 0)
         ref = ref[filter_]
         snps2 = snps2[filter_]
+    elif ascertainment == "hcneaden":
+        filter_ = (ref.NEA_alt + ref.DEN_alt + ref.AFR_alt != 0) & (ref.AFR_ref + ref.NEA_ref + ref.DEN_ref != 0)
+        ref = ref[filter_]
+        snps2 = snps2[filter_]
     elif ascertainment == "archaics":
         filter_ = (ref.NEA_alt + ref.DEN_alt + ref.AFR_alt != 0) & (ref.AFR_ref + ref.NEA_ref + ref.DEN_ref != 0)
         ref = ref[filter_]
         snps2 = snps2[filter_]
-    elif ascertainment == "none":
-        pass
     else:
         raise ValueError("ascertainment not known")
 
-    #ref.to_csv(f"{prefix}.panel.xz", float_format="%.5f", index=False, compression="xz")
     ref.to_csv(f"{prefix}.panel.txt", float_format="%.5f", index=False)
 
     n_libs = len(coverage)
@@ -99,7 +95,7 @@ def admixfrog_input(snps, rec, coverage, contamination,chrom='1', prefix='admixf
                          name=f'{prefix}.{i}')
 
 
-def admixfrog_ids(snps, prefix='admixfrog', all_deni=False):
+def admixfrog_ids(snps, prefix='admixfrog'):
     snps2 = snps
     afr_cols = [col for col in snps2.columns if col.startswith("afr")] 
     asn_cols = [col for col in snps2.columns if col.startswith("asn")] 
@@ -107,13 +103,9 @@ def admixfrog_ids(snps, prefix='admixfrog', all_deni=False):
     cont_cols = [col for col in snps2.columns if col.startswith("cont")] 
 
     den_cols = [col for col in snps2.columns if col.startswith("den")]
-    if all_deni:
-        den_cols = den_cols[1:]
-    else:
-        den_cols = den_cols[3:]
+    den_cols = den_cols[2:]
 
-
-    samples = asn_cols + eur_cols + den_cols
+    samples = eur_cols + den_cols
     n_samples = len(samples) // 2
     samples = np.array(samples).reshape(n_samples, 2).tolist()
 
@@ -129,7 +121,6 @@ def admixfrog_sample(ids, ref, snps, coverage, contamination, libs, name):
         data['true_alt'] = np.sum(snps[ids],1)
         data['true_ref'] = 2 - data['true_alt']
         data['lib'] = lib
-
         
         cov_real = poisson.rvs(cov * (1. - cont), size=data.shape[0])
         cov_cont = poisson.rvs(cov * cont, size=data.shape[0])
@@ -153,19 +144,3 @@ def admixfrog_sample(ids, ref, snps, coverage, contamination, libs, name):
     data.to_csv(f"{name}.sample.txt", float_format="%.5f",
                 index=False
                 )
-
-debug_str = ""\
-"--neand 55000,25,0,0.03 "\
-"--eur-ages 45000 45000 40000 40000 30000 30000 "\
-"--seq-len 5_000_000 "\
-"--stats true_neand "\
-"--introgression neand-eur "\
-"--nafrA 40 "\
-"--nafrB 20 "\
-"--nasn 40 "\
-"--snps "\
-"--admixfrog "\
-"--coverage 1 1 1 1 1 1 1 1 1 1 "\
-"--contamination 0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 "\
-"--output-prefix tmp/cont".split()
-#"--vcf --vcf-ploidy 1 "\
