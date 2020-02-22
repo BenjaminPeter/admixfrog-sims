@@ -5,6 +5,8 @@ from scripts.admixfrog_input import admixfrog_input, admixfrog_ids
 configfile : "config/sims.yaml"
 include: 'plots.snake'
 
+#localrules: run_sim, sample_table, merge_panel, merge_sample, merge_true, classify_frags, hapmap_rec,
+
 C=config
 
 N_SAMPLES =  8
@@ -147,7 +149,7 @@ rule merge_panel:
     priority : 100
     group : "sim"
     output:
-        "sims/{sim}/{demo}.{cov}.{rep}.panel.xz"
+        "infiles/{sim}/{demo}.{cov}.{rep}.panel.xz"
     shell:
         "head -qn1 {input[0]} | xz -c > {output} && "
         "tail -qn+2 {input} | xz -c >> {output} "
@@ -158,7 +160,7 @@ rule merge_sample:
     priority : 1020
     group : "sim"
     output:
-        "sims/{sim}/{demo}.{cov}.{rep}.{id}.sample.xz"
+        "infiles/{sim}/{demo}.{cov}.{rep}.{id}.sample.xz"
     shell:
         "head -qn1 {input[0]} | xz -c > {output} && "
         "tail -qn+2 {input} | xz -c >> {output} "
@@ -180,11 +182,19 @@ rule merge_true:
         frags="sims/{sim}/{demo}.{rep}_all_haplotypes.xz",
     script: "scripts/merge_true.R"
 
+rule merge_true_reps:
+    input:
+        f=expand("sims/{{sim}}/{{demo}}.{rep}_all_haplotypes.xz",
+            rep=range(N_REPS)),
+        idtbl ='sims/{sim}/{demo}.idtbl'
+    output:
+        frags="sims/true/{sim}/{demo}_all_haplotypes_merged.xz"
+    script: 'scripts/merge_true2.R'
 
 rule run_admixfrog:
     input:
-        sample="sims/{sims}/{demo}.{cov}.{rep}.{id}.sample.xz",
-        ref="sims/{sims}/{demo}.{cov}.{rep}.panel.xz",
+        sample="infiles/{sims}/{demo}.{cov}.{rep}.{id}.sample.xz",
+        ref="infiles/{sims}/{demo}.{cov}.{rep}.panel.xz",
     params:
         freq_f = 3,
         freq_c = 1,
@@ -216,7 +226,7 @@ rule run_admixfrog:
         s += " --ancestral {params.ancestral} "
         s += " --max-iter {params.max_iter}"
         s += " --n-post-replicates {params.n_post_rep}"
-        s += " --no-snp --no-rle "
+        s += " --no-snp --no-rle > /dev/null"
         
         print(s)
         shell(s)
@@ -242,7 +252,6 @@ rule classify_frags:
         estfile="rle/{pars}/{rle}/{sim}/{demo}.{cov}.{rep}.{id}.rle.xz",
         truefile="sims/{sim}/{demo}.{rep}_all_haplotypes.xz",
         sample_table="sims/{sim}/{demo}.idtbl",    
-    group: 'frags'
     output:
         frags = "admixfrog/{pars}/{sim}/{rle}/{demo}.{cov}.{rep}.{id}.frags"
     script: "scripts/compare_frags.R"

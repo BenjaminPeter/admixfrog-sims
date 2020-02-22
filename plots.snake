@@ -1,3 +1,5 @@
+localrules : fig_cont, fig_rle, fig_offtarget, fig_runlengths, fig_prop
+
 rule fig_cont:
     input:
         'series/A1binMH/SBasic/DHuman1/C4archaicadmixture.rds',
@@ -11,3 +13,49 @@ rule fig_cont:
         'figures/fig_cont_est_mh.png',
         
     script: 'plotscripts/fig_cont.R'
+
+rule fig_rle:
+    input:
+        mh_nocont='series/A3binsMH/SBasic/R2/DHuman1/CN4archaicadmixture.class.xz',
+        mh_cont='series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.class.xz',
+        den_cont='series/A1binDEN/SBasic/R2/DDen1/C4hcneaden.class.xz',
+        mh_r='series/A3binsMH/SBasic/RTest5/DHuman1/CN4archaicadmixture.class.xz',
+    output:
+        'figures/rp1.png',
+        'figures/rp2.png',
+        'figures/prec1.png',
+        'figures/prec2.png',
+        'figures/prec3.png',
+        'figures/cont1.png',
+        'figures/cont2_den.png',
+        'figures/fig_error_rle.png',
+    script: 'plotscripts/fig_rle2.R'
+
+rule fig_offtarget:
+    input:
+        mh_nocont='series/A1bin2MH/SBasic/R2/DHumanDenAdmix1/CN4archaicadmixture.class.xz',
+        script='plotscripts/fig_rle2.R'
+    output:
+        'figures/offtarget.png'
+    script: 'plotscripts/fig_rle2.R'
+
+rule fig_runlengths:
+    input:
+        true_raw="sims/true/SBasic_0/DHuman1_0_all_haplotypes_merged.xz",
+        sim_raw="series/simfrags/A3binsMH/SBasic/DHuman1/C4archaicadmixture.xz",
+        runs = 'series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.est.xz',
+        script='plotscripts/fig_run_lengths.R'
+    output:
+        'figures/fraglen1.png',
+        'figures/fraglen2.png'
+    script: 'plotscripts/fig_run_lengths.R'
+
+rule fig_prop:
+    input:
+        'series/simfrags/A1binMH/SBasic/DHuman_prop1/CN4archaicadmixture.xz',
+        'series/A1binMH/SBasic/RTest5/DHuman_prop1/CN4archaicadmixture.est.xz',
+        script = 'plotscripts/fig2_prop.R',
+    output:
+        'figures/prop1_simfrag.png'
+        'figures/prop1_estfrag.png'
+    script: 'plotscripts/fig2_prop.R'

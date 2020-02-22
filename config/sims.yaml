@@ -48,11 +48,17 @@ series:
             m_gf_neaeur : [0.03]
             m_gf_neaeur_rev : [0.00]
             t_gf_neaeur : [50000]
-        DHuman_prop_simple1: #scenario a3
-            a_eur : [[45000, 45000, 30000,30000, 0, 0]]
+        DHumanDenAdmix1: 
+            a_eur : [[45000, 45000, 30000,30000, 15000, 15000, 0, 0]]
             m_gf_neaeur : [0.03]
             t_gf_neaeur : [50000]
             m_gf_deneur : [0.005]
+            t_gf_deneur : [50000]
+        DHuman_prop1: 
+            a_eur : [[45000, 45000, 30000,30000, 15000, 15000, 0, 0]]
+            m_gf_neaeur : [0, 0.002, 0.01, 0.03 ]
+            t_gf_neaeur : [50000]
+            m_gf_deneur : [0.000]
             t_gf_deneur : [50000]
         DDentime1: #scenario a2
             a_den : [[110000, 110000, 100000, 100000, 70000, 70000]]
@@ -72,6 +78,9 @@ series:
         A1binMH: #a1
             bin_size : [5000]
             state_ids: [["AFR", "NEA"]]
+        A1bin2MH: #a1
+            bin_size : [5000]
+            state_ids: [["AFR", "NEA"], ['AFR', 'NEA', 'DEN']]
         A1binDEN:
             bin_size : [5000]
             state_ids: [["NEA", "DEN"]]
@@ -94,11 +103,11 @@ series:
             coverage : [[[2, 0]]]
             ascertainment: ['archaicadmixture']
             rec_obs : ['Physical_Pos']
-        C4hcneaden:
+        CN4hcneaden:
             coverage : [[[0.03, 0]], [[0.1, 0]], [[0.5, 0]], [[2, 0]]]
             ascertainment: ['hcneaden']
             rec_obs : ['Physical_Pos']
-        C4archaicadmixture:
+        CN4archaicadmixture:
             coverage : [[[0.03, 0]], [[0.1, 0]], [[0.5, 0]], [[2, 0]]]
             ascertainment: ['archaicadmixture']
             rec_obs : ['Physical_Pos']
