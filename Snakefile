@@ -50,7 +50,6 @@ rule run_sim:
     input:
         rec=get_rec_true
     priority : 1
-    group : "sim"
     benchmark:
         "benchmarks/run_sim/{sim}/{chrom}/{demo}.{rep}_snps.tsv",
     output:
@@ -121,7 +120,6 @@ rule admixfrog_input:
     resources:
         io=1
     priority : 0
-    group : "sim"
     output:
         panel=temp("sims/{sim}/{chrom}/{demo}.{cov}.{rep}.panel.txt"),
         samples=temp(expand("sims/{{sim}}/{{chrom}}/{{demo}}.{{cov}}.{{rep}}.{id}.sample.txt", 
@@ -147,7 +145,7 @@ rule merge_panel:
     input:
         expand("sims/{{sim}}/{chrom}/{{demo}}.{{cov}}.{{rep}}.panel.txt", chrom=CHROMS)
     priority : 100
-    group : "sim"
+    group : "merge"
     output:
         "infiles/{sim}/{demo}.{cov}.{rep}.panel.xz"
     shell:
@@ -158,7 +156,7 @@ rule merge_sample:
     input:
         expand("sims/{{sim}}/{chrom}/{{demo}}.{{cov}}.{{rep}}.{{id}}.sample.txt", chrom=CHROMS)
     priority : 1020
-    group : "sim"
+    group : "merge"
     output:
         "infiles/{sim}/{demo}.{cov}.{rep}.{id}.sample.xz"
     shell:
@@ -177,7 +175,7 @@ rule merge_true:
         _script = 'scripts/merge_true.R'
         #rec_files = get_recs,
     priority : 10
-    group : "sim"
+    group : "merge"
     output:
         frags="sims/{sim}/{demo}.{rep}_all_haplotypes.xz",
     script: "scripts/merge_true.R"
@@ -226,7 +224,7 @@ rule run_admixfrog:
         s += " --ancestral {params.ancestral} "
         s += " --max-iter {params.max_iter}"
         s += " --n-post-replicates {params.n_post_rep}"
-        s += " --no-snp --no-rle > /dev/null"
+        s += " --no-snp --no-rle 2> /dev/null"
         
         print(s)
         shell(s)
@@ -252,8 +250,10 @@ rule classify_frags:
         estfile="rle/{pars}/{rle}/{sim}/{demo}.{cov}.{rep}.{id}.rle.xz",
         truefile="sims/{sim}/{demo}.{rep}_all_haplotypes.xz",
         sample_table="sims/{sim}/{demo}.idtbl",    
+        _sript = 'scripts/compare_frags.R'
+    group: 'frags'
     output:
-        frags = "admixfrog/{pars}/{sim}/{rle}/{demo}.{cov}.{rep}.{id}.frags"
+        frags = "frags/{pars}/{sim}/{rle}/{demo}.{cov}.{rep}.{id}.frags.gz"
     script: "scripts/compare_frags.R"
 
 def _all_simfrags(wc):
@@ -285,7 +285,7 @@ def _all_series(wc):
     sim = [x for x in C['sim'] if x.startswith(f"{wc.sim_series}_")]
     pars = [x for x in C['admixfrog'] if x.startswith(f"{wc.af_series}_")]
     cov = [x for x in C['coverage'] if x.startswith(f"{wc.cov_series}_")]
-    frags = expand("admixfrog/{pars}/{sim}/{rle}/{demo}.{cov}.{rep}.{id}.frags",
+    frags = expand("frags/{pars}/{sim}/{rle}/{demo}.{cov}.{rep}.{id}.frags.gz",
         pars=pars,
         sim=sim,
         demo=demo,

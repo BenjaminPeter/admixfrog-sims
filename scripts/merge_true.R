@@ -18,14 +18,26 @@ approxpos <- function(true, rec_files){
         mutate(map_len = map_end - map)
     return(z)
     }
-
 }
 
+true_cols <- cols(
+                  chrom='c',
+                  diploid_id='i',
+                  end='i',
+                  from='c',
+                  hap_id='i',
+                  id='i',
+                  sample='c',
+                  sample_time='i',
+                  start='i',
+                  time='i',
+                  to='c',
+                  years='i')
 
 
 
 load_true<- function(truefiles, rec_files=NULL){
-    true = lapply(truefiles, read_csv, col_types="iiiiicciiicc") %>%
+    true = lapply(truefiles, read_csv, col_types=true_cols) %>%
         bind_rows() %>%
         mutate(pos = start, pos_end = end) %>%
         mutate(pos_len=end-start) %>%

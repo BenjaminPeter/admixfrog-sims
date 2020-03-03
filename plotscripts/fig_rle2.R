@@ -1,11 +1,6 @@
-library(cowplot)
-require(tidyverse)
-#T0=60000
-#TRUNC = .2
-#TMX = 2.
-#N=10000
-#m=0.03
+library(tidyverse)
 
+options(scipen=999)
 
 COL_CLASSES = c('FN' = '#800000',
                 'FP' = '#ffb000',
@@ -15,13 +10,11 @@ COL_CLASSES = c('FN' = '#800000',
                 'GAP' = '#f000ff'
                 )
 
-#series rle2 in sims.yaml
-#class_raw = read_csv("series/A4binsMH/SBasic/R2/DHuman_prop_simple1/C4nocont.class.xz")%>% mutate(CLS=ifelse(CLS=='M2', 'OVERLAP', CLS))
-#cont_raw = read_csv("series/A4binsMH/SBasic/R2/DHuman_prop_simple1/C4Fix.class.xz") %>% mutate(CLS=ifelse(CLS=='M2', 'OVERLAP', CLS))
-#den_raw = read_csv("series/A1binDEN/SBasic/R2/DDen1/CBasic.class.xz") %>% mutate(CLS=ifelse(CLS=='M2', 'OVERLAP', CLS))
-#den_raw3 = read_csv("series/A1binDEN/SBasic/R2/DDen1/C4Ten.class.xz") %>% mutate(CLS=ifelse(CLS=='M2', 'OVERLAP', CLS))
-
-#r_raw = read_csv("series/A4binsMH/SBasic/RTest5/DHuman_prop_simple1/CHuman.class.xz") %>% mutate(CLS=ifelse(CLS=='M2', 'OVERLAP', CLS))
+mh_nocont_raw = read_csv("series/A3binsMH/SBasic/R2/DHuman1/CN4archaicadmixture.class.xz")
+mh_cont_raw = read_csv("series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.class.xz") 
+den_cont_raw = read_csv("series/A1binDEN/SBasic/R2/DDen1/C4hcneaden.class.xz") 
+arc_cont_raw = read_csv("series/A1binARC/SBasic/R2/DDen1/C4hcneaden.class.xz") 
+mh_run_raw = read_csv("series/A3binsMH/SBasic/RTest5/DHuman1/CN4archaicadmixture.class.xz") 
 
 
 #analysis of run calling accuracy
@@ -80,55 +73,131 @@ plot_accuracy <- function(class_raw) {
         theme(legend.position='right')
 }
 
-TP = class_raw %>% filter(CLS== "TP")
-G = TP %>% #filter(run_penalty==0.2) %>% 
-    group_by(len2, bin_size, run_penalty, coverage) %>% summarize(E=mean(err_start+err_end + bin_size))
 
-P3 = G %>% 
-    ggplot(aes(x=len2 / 1e6, y=-E / 1e6, color=as.factor(coverage), group=as.factor(coverage))) + 
-    geom_line() + 
-    facet_grid(.~bin_size) + 
-    coord_cartesian(ylim=c(-0.05, .05) , xlim=c(0, .5)) +
-    xlab("Length (Mb)") + 
-    ylab("Error[L]") +
-    scale_color_discrete("coverage")
+#' 1. do plot comparing run lengths vs truth for true positives
+plot_rl_accuaracy <- function(df, colvar='coverage'){
+    TP = df %>% filter(CLS== "TP")
+    G = TP %>% #filter(run_penalty==0.2) %>% 
+        mutate(coverage = as.factor(coverage), 
+               run_penalty = as.factor(run_penalty), 
+               cont=as.factor(cont)) %>%
+        mutate(len2 = round(len2/5e4) * 5e4) %>%
+        group_by(len2, bin_size, run_penalty, cont, coverage) %>% 
+        summarize(E=mean(err_start+err_end + bin_size),
+                  RE=mean( (err_start+err_end + bin_size) / len))  %>%
+        mutate(x=len2 / 1e6, y = RE) #y = E / 1e6)
 
-ggsave("figures/fig_error_rle.png", P3, width=6, height=1.5, scale=1)
+    P3 = G %>% 
+        ggplot(aes_string(x='x', y='y', color=colvar, group=colvar)) +
+        geom_line() + 
+        facet_grid(.~bin_size) + 
+        coord_cartesian(ylim=c(-0.1, .1) , xlim=c(0, 1.5)) +
+        xlab("Length (Mb)") + 
+        ylab("Error[L]")
+}
+plot_rl_accuaracy_age <- function(df, colvar='coverage'){
+    TP = df %>% filter(CLS== "TP")
+    G = TP %>% #filter(run_penalty==0.2) %>% 
+        filter(bin_size==5000) %>%
+        mutate(coverage = as.factor(coverage), 
+               run_penalty = as.factor(run_penalty), 
+               cont=as.factor(cont)) %>%
+        mutate(len2 = round(len2/5e4) * 5e4) %>%
+        group_by(len2, age, bin_size, run_penalty, cont, coverage) %>% 
+        summarize(E=mean(err_start+err_end + bin_size),
+                  RE=mean( (err_start+err_end + bin_size) / len))  %>%
+        mutate(x=len2 / 1e6, y = RE) #y = E / 1e6)
+
+    P3 = G %>% 
+        ggplot(aes_string(x='x', y='y', color=colvar, group=colvar)) +
+        geom_line() + 
+        facet_grid(.~age) + 
+        coord_cartesian(ylim=c(-0.1, .1) , xlim=c(0, 1.5)) +
+        xlab("Length (Mb)") + 
+        ylab("Error[L]")
+}
+
+P_rle_mh_nocont = plot_rl_accuaracy(mh_nocont_raw)
+ggsave("figures/fig_error_rle_mh_nocont.png", P_rle_mh_nocont, width=6, height=1.5, scale=1)
+P_rle_mh_cont = plot_rl_accuaracy(mh_cont_raw, colvar='cont') #+ facet_grid(. ~ age)
+ggsave("figures/fig_error_rle_mh_cont.png", P_rle_mh_cont, width=6, height=1.5, scale=1)
+P_rle_mh_run = plot_rl_accuaracy(mh_run_raw %>% filter(bin_size==5000), colvar='run_penalty')  + facet_grid(. ~ coverage)
+ggsave("figures/fig_error_rle_mh_run.png", P_rle_mh_run, width=6, height=1.5, scale=1)
+
+P_rle_mh_nocont_age = plot_rl_accuaracy_age(mh_nocont_raw)
+ggsave("figures/fig_error_rle_mh_nocont_age.png", P_rle_mh_nocont_age, width=6, height=1.5, scale=1)
 
 
 #' basic performance figures
-df = class_raw %>% filter(bin_size==5000, age < 49000)
-P_basic1 = plot_prec(df) + facet_grid(age ~ stat) + scale_color_viridis_d()
-ggsave("figures/prec1.png", P_basic1, width=6, height=2.5, scale=1)
+P_prec_mh_nocont = mh_nocont_raw %>% 
+    filter(bin_size==5000) %>% 
+    plot_prec() + 
+    facet_grid(age ~ stat) 
+ggsave("figures/prec_mh_nocont.png", P_prec_mh_nocont, width=6, height=2.5, scale=1)
 
-P_basic2 = df %>% plot_accuracy() + facet_grid(age ~ cov2)
-ggsave("figures/prec2.png", P_basic2, width=6, height=2.5, scale=1)
+P_acc_mh_nocont = mh_nocont_raw %>% 
+    filter(bin_size==5000) %>% 
+    plot_accuracy() + 
+    facet_grid(age ~ cov2)
+ggsave("figures/acc_mh_nocont.png", P_acc_mh_nocont, width=6, height=2.5, scale=1)
 
-#' basic performance figures
-df = class_raw %>% filter(age == 30000)
-P_basic3 = plot_prec(df, 'bin_size') + facet_grid(coverage ~ stat) + scale_color_viridis_c()
-ggsave("figures/prec3.png", P_basic1, width=6, height=2.5, scale=1)
+#' bin size performance figures
+P_basic3 = mh_nocont_raw %>% 
+    filter(age == 30000) %>%
+    plot_prec('bin_size') + 
+    facet_grid(coverage ~ stat) + scale_color_viridis_c()
+ggsave("figures/prec_mh_nocont_binsize.png", P_basic3, width=6, height=2.5, scale=1)
 
-P_basic2 = df %>% plot_accuracy() + facet_grid(age ~ cov2)
+
 
 #' contamination runs
-df_cont = cont_raw %>% filter(bin_size == 5000, age < 49000)
-P_cont1 = plot_prec(df_cont, 'cont') + facet_grid(age ~ stat) + scale_color_viridis_d()
-ggsave("figures/cont1.png", P_cont1, width=6, height=2.5, scale=1)
+P_prec_mh_cont = mh_cont_raw %>% 
+    filter(bin_size == 5000) %>%
+    plot_prec('cont') + 
+    facet_grid(age ~ stat) + 
+    scale_color_viridis_d()
+ggsave("figures/prec_mh_cont.png", P_prec_mh_cont, width=6, height=2.5, scale=1)
 
-df_den = den_raw3 %>% filter(bin_size == 10000, age < 119000)
-P_cont_den = plot_prec(df_den, 'cont') + facet_grid(age ~ stat) + scale_color_viridis_d()
-ggsave("figures/cont2_den.png", P_cont_den, width=6, height=2.5, scale=1)
+P_acc_mh_cont = mh_cont_raw %>% 
+    filter(bin_size == 5000) %>%
+    plot_accuracy() +
+    facet_grid(age ~ cont) 
+ggsave("figures/acc_mh_cont.png", P_acc_mh_cont, width=7.2, height=2.5, scale=1)
+
+P_prec_den_cont = den_cont_raw %>%
+    filter(bin_size == 5000) %>%
+    plot_prec('cont') + 
+    facet_grid(age ~ stat) + 
+    scale_color_viridis_d()
+ggsave("figures/prec_den_cont.png", P_prec_den_cont, width=6, height=2.5, scale=1)
+
+P_acc_den_cont = den_cont_raw %>%
+    filter(bin_size == 5000) %>%
+    plot_accuracy() + 
+    facet_grid(age ~ cont) + 
+    scale_color_viridis_d()
+ggsave("figures/acc_den_cont.png", P_acc_den_cont, width=7.2, height=2.5, scale=1)
+
+P_prec_arc_cont = arc_cont_raw %>%
+    filter(bin_size == 5000) %>%
+    plot_prec('cont') + 
+    facet_grid(age ~ stat) + 
+    scale_color_viridis_d()
+ggsave("figures/prec_arc_cont.png", P_prec_arc_cont, width=6, height=2.5, scale=1)
+
+
+
+
+
 # ' run penalty figs
-R = r_raw %>% filter(age<49000, bin_size==5000)
+R = mh_run_raw %>% filter(bin_size==5000, age==30000)
 
 #' run penalty fig1
 P_rp1 = plot_prec(R, var='run_penalty') + 
-    coord_cartesian(ylim=c(.75, 1), xlim=c(0, .2)) + 
-    scale_color_viridis_d() + facet_grid(age ~ stat)
+    scale_color_viridis_d() + facet_grid(coverage ~ stat)
 ggsave("figures/rp1.png", width=6, height=2.5, scale=1)
 
 #' run penalty fig2
-P_rp2 = plot_accuracy(R) + facet_grid(age~run_penalty)
+P_rp2 = plot_accuracy(R) + facet_grid(coverage~run_penalty)
 ggsave("figures/rp2.png", width=6, height=2.5, scale=1)
 

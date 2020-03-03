@@ -53,8 +53,24 @@ load_est <- function(estfile, base_state='AFR'){
     return(est)
 }
 
+true_cols <- cols(
+                  chrom='c',
+                  diploid_id='i',
+                  end='i',
+                  from='c',
+                  hap_id='i',
+                  id='i',
+                  sample='c',
+                  sample_time='i',
+                  start='i',
+                  time='i',
+                  to='c',
+                  pos='i',
+                  pos_end='i',
+                  pos_len='i',
+                  years='i')
 load_true<- function(truefile, sample_id){
-    true = read_csv(truefile, col_types="iiiiiccicccciii") %>%
+    true = read_csv(truefile, col_types=true_cols) %>%
         filter(sample %in% sample_id) #%>% 
     print("done loading true")
     return(true)

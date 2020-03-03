@@ -1,5 +1,5 @@
 library(tidyverse)
-save.image("rdebugs")
+#save.image("rdebugs")
 
 f <- function(x){x$diploid_id=1:nrow(x)-1; return(x)}
 

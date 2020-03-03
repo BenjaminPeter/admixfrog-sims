@@ -2,8 +2,8 @@ library(tidyverse)
 TRUNC = 0.2
 
 true_raw = read_csv("sims/true/SBasic_0/DHuman1_0_all_haplotypes_merged.xz")
-sim_raw = read_csv('series/simfrags/A3binsMH/SBasic/DHuman1/C4archaicadmixture.xz')
-runs = read_csv("series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.est.xz")
+sim_raw = read_csv('series/simfrags/A3binsMH/SBasic/DHuman1/CN4archaicadmixture.xz')
+runs = read_csv("series/A3binsMH/SBasic/R2/DHuman1/CN4archaicadmixture.est.xz")
 
 
 true_diploid_raw = true_raw %>%
@@ -100,10 +100,6 @@ STAT_RUNS = stat_bin(mapping=aes(x=map_len, color=coverage, group=coverage, y=..
              boundary=TRUNC,
              geom='line', size=.4, position='identity', binwidth=0.04) 
 
-STAT_RUNS = stat_bin(mapping=aes(x=map_len, color=cont, group=cont, y=..density..),
-             data=df_runs,
-             boundary=TRUNC,
-             geom='line', size=.4, position='identity', binwidth=0.04) 
 
 
 P_runs =  ggplot() + 
@@ -113,7 +109,7 @@ P_runs =  ggplot() +
     scale_x_continuous('Length (cM)') +
     coord_cartesian(ylim=c(1e1,1e-1), xlim=c(TRUNC, 2), expand=F) +
     theme(legend.position='top')
-ggsave("figures/fraglen1_cont.png", P_runs, width=7, height=3.5)
+ggsave("figures/fraglen1_cov.png", P_runs, width=7, height=3.5)
 
 P_sims =  ggplot() + 
     geom_smooth(data=t2 %>% mutate(age=5e4-sample_time), 
@@ -122,7 +118,7 @@ P_sims =  ggplot() +
                 lty=1)  +
     stat_bin(mapping=aes(x=map_len, 
                          weight=n,
-                         color=cont, group=cont, y=..density..),
+                         color=coverage, group=coverage, y=..density..),
              data=df_sims,
              boundary=TRUNC,
              geom='line', lty=2, size=.4, position='identity', binwidth=0.04) + 
@@ -133,5 +129,5 @@ P_sims =  ggplot() +
     coord_cartesian(ylim=c(1e1,1e-1), xlim=c(TRUNC, 2), expand=F)  +
     geom_line(data=e2 %>% mutate(age=sample_time), mapping=aes(x=len, y=n*100), lty=1) +
     theme(legend.position='top')
-ggsave("figures/fraglen2_cont.png", P_sims, width=8, height=5)
+ggsave("figures/fraglen2_cov.png", P_sims, width=8, height=5)
 

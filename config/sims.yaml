@@ -26,6 +26,7 @@ demography:
         d_gf_deneur : 0
         m_gf_deneur_rev: 0.0
         m_gf_deneur : 0.0
+        target : ['AFR']
 
 admixfrog:
     __default__ :
@@ -61,16 +62,18 @@ series:
             m_gf_deneur : [0.000]
             t_gf_deneur : [50000]
         DDentime1: #scenario a2
-            a_den : [[110000, 110000, 100000, 100000, 70000, 70000]]
+            a_den : [[110000, 110000, 100000, 100000, 70000, 70000, 50000, 50000]]
             m_gf_neaden : [0.05]
-            m_gf_neaden_rev : [0.0, 0.01, 0.05]
+            m_gf_neaden_rev : [0.0, 0.05]
             t_gf_neaden : [120000]
-            d_gf_neaden : [25, 500, 10000]
+            d_gf_neaden : [25, 10000]
+            target : ['DEN']
         DDen1: #scenario a2
             a_den : [[110000, 110000, 100000, 100000, 70000, 70000, 50000, 50000]]
             m_gf_neaden : [0.05]
             m_gf_neaden_rev : [0.0]
             t_gf_neaden : [120000]
+            target : ['DEN']
     admixfrog:
         A3binsMH: #a1
             bin_size : [2000, 5000, 10000]
@@ -141,8 +144,8 @@ series:
 
 set:
     frag_human1:
-        admixfrog: A4binsMH
+        admixfrog: A3binsMH
         sim: SBasic
-        rle: RBasic
+        rle: R2
         demography: DHuman1
-        coverage: C4nocont
+        coverage: C4archaicadmixture
