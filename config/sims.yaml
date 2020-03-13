@@ -41,6 +41,8 @@ series:
     rle:
         R2 :
             run_penalty : [0.2]
+        R4 :
+            run_penalty : [0.4]
         RTest5 :
             run_penalty : [0.1, 0.2, 0.4]
     demography:

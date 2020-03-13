@@ -47,6 +47,7 @@ rule fig_cont:
 rule fig_rle:
     input:
         mh_nocont='series/A3binsMH/SBasic/R2/DHuman1/CN4archaicadmixture.class.xz',
+        den_nocont='series/A1binDEN/SBasic/R4/DDen1/CN4hcneaden.class.xz',
         mh_cont='series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.class.xz',
         den_cont='series/A1binDEN/SBasic/R2/DDen1/C4hcneaden.class.xz',
         den_cont2='series/A1binARC/SBasic/R2/DDen1/C4hcneaden.class.xz',
@@ -86,7 +87,7 @@ rule fig_prop_den:
         'figures/prop1_simfrag_den.png',
         'figures/prop1_estfrag_den.png'
     script: 'plotscripts/fig2_prop_den.R'
-#sketych
+
 rule fig_prop_den2:
     input:
         'series/simfrags/A1binARC/SBasic/DDentime1/C4hcneaden.xz',

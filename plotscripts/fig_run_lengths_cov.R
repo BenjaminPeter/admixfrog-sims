@@ -104,7 +104,7 @@ STAT_RUNS = stat_bin(mapping=aes(x=map_len, color=coverage, group=coverage, y=..
 
 P_runs =  ggplot() + 
     STAT_RUNS + STAT_DIP_TRUE + 
-    facet_grid(age ~ bin_size, labeller='label_both') + 
+    facet_grid(age ~ bin_size) + 
     scale_y_log10() + 
     scale_x_continuous('Length (cM)') +
     coord_cartesian(ylim=c(1e1,1e-1), xlim=c(TRUNC, 2), expand=F) +
