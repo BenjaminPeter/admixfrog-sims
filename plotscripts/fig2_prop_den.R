@@ -52,7 +52,7 @@ R2= runs%>%
     replace_na(list(DEN=0, NEA=0, NEADEN=0)) %>%
     mutate(D=2*DEN+NEADEN, N=2*NEA + NEADEN)
 
-R = lapply(cutoffs, function(C)runs %>% filter(map_len>=C) %>%
+R = lapply(cutoffs, function(C)R2 %>% filter(map_len>=C) %>%
            group_by(m_gf_neaden_rev, d_gf_neaden, age, cont, coverage, rep, run_penalty, .drop=F) %>% 
            summarize(D=sum(D*map_len), N=sum(N*map_len)) %>% mutate(p=(N / (N+D))))
 

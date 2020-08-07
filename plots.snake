@@ -1,4 +1,4 @@
-localrules : fig_cont, fig_rle, fig_offtarget, fig_runlengths, fig_prop
+localrules : fig_cont, fig_rle, fig_runlengths, fig_prop
 
 #DONE
 rule fig_runlengths:
@@ -67,7 +67,6 @@ rule fig_rle:
 
 
 
-#needs fixing
 rule fig_prop:
     input:
         'series/simfrags/A1binMH/SBasic/DHuman_prop1/CN4archaicadmixture.xz',
@@ -88,28 +87,42 @@ rule fig_prop_den:
         'figures/prop1_estfrag_den.png'
     script: 'plotscripts/fig2_prop_den.R'
 
-rule fig_prop_den2:
-    input:
-        'series/simfrags/A1binARC/SBasic/DDentime1/C4hcneaden.xz',
-        'series/A1binARC/SBasic/R2/DDentime1/C4hcneaden.est.xz',
-        'series/simfrags/A1binDEN/SBasic/DDentime1/C4archaics.xz',
-        'series/A1binDEN/SBasic/R2/DDentime1/C4archaics.est.xz',
-        'series/simfrags/A1binDEN/SBasic/DDentime1/CN4hcneaden.xz',
-        'series/A1binDEN/SBasic/R2/DDentime1/CN4hcneaden.est.xz',
-        script = 'plotscripts/fig2_prop.R',
-    output:
-        'figures/prop1_simfrag.png'
-        'figures/prop1_estfrag.png'
-    script: 'plotscripts/fig2_prop.R'
 
-        
-#complete script
-rule fig_offtarget:
+rule figS1ab:
     input:
-        mh_nocont='series/A1bin2MH/SBasic/R2/DHumanDenAdmix1/CN4archaicadmixture.class.xz',
-        script='plotscripts/fig_rle2.R'
+        den_nocont_raw = 'series/A1binDEN/SBasic/R4/DDen1/CN4hcneaden.class.xz',
+        script_ = 'plotscripts/figs1a.R',
     output:
-        'figures/offtarget.png'
-    script: 'plotscripts/fig_rle2.R'
+        'figures/paper/prec_den_nocont.png',
+        'figures/paper/acc_den_nocont.png',
+    script: 'plotscripts/figs1a.R'
 
-        
+rule figS1c:
+    input:
+        den_cont_raw = 'series/A1binDEN/SBasic/R4/DDen1/C4hcneaden.class.xz',
+        script_ = 'plotscripts/figs1c.R',
+    output:
+        'figures/paper/acc_den_cont.png',
+    script: 'plotscripts/figs1c.R'
+
+rule figS1d:
+    input:
+        'series/A1binDEN/SBasic/DDen1/C4hcneaden.rds',
+        script_ = 'plotscripts/figs1d.R',
+    output: 'figures/paper/fig_cont_est_den.png'
+    script: 'plotscripts/figs1d.R'
+
+rule src_figS1:
+    input:
+        'config/sims.yaml',
+        'Snakefile',
+        'plots.snake',
+        'series/A1binDEN/SBasic/R4/DDen1/CN4hcneaden.class.xz',
+        'series/A1binDEN/SBasic/R4/DDen1/C4hcneaden.class.xz',
+        'series/A1binDEN/SBasic/DDen1/C4hcneaden.rds',
+        'plotscripts/figs1a.R',
+        'plotscripts/figs1c.R',
+        'plotscripts/figs1d.R',
+        'plotscripts/lib.R',
+    output: 'src/figS1.zip'
+    shell: 'zip {output} {input}'
