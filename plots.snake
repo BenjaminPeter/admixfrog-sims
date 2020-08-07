@@ -87,7 +87,7 @@ rule fig_prop_den:
         'figures/prop1_estfrag_den.png'
     script: 'plotscripts/fig2_prop_den.R'
 
-
+"""figure 1 stuff"""
 rule figS1ab:
     input:
         den_nocont_raw = 'series/A1binDEN/SBasic/R4/DDen1/CN4hcneaden.class.xz',
@@ -112,6 +112,22 @@ rule figS1d:
     output: 'figures/paper/fig_cont_est_den.png'
     script: 'plotscripts/figs1d.R'
 
+rule figS1:
+    input:
+        template='figures/svg_templates/s_sims1.svg',
+        s1a='figures/paper/prec_den_nocont.png',
+        s1b='figures/paper/acc_den_nocont.png',
+        s1c='figures/paper/acc_den_cont.png',
+        s1d='figures/paper/fig_cont_est_den.png',
+    output:
+        'figures/rawsvg/figS1.svg'
+    run:
+        with open(input.template) as f:
+            svg = f.read()
+            svg = svg.format(**dict(input))
+        with open(output[0], 'w') as f:
+            f.write(svg)
+
 rule src_figS1:
     input:
         'config/sims.yaml',
@@ -126,3 +142,137 @@ rule src_figS1:
         'plotscripts/lib.R',
     output: 'src/figS1.zip'
     shell: 'zip {output} {input}'
+
+"""Figure 2 stuff"""
+rule figS2ab3c:
+    input:
+        mh_nocont_raw = 'series/A3binsMH/SBasic/R4/DHuman1/CN4archaicadmixture.class.xz',
+        script_ = 'plotscripts/figs2a.R',
+    output:
+        'figures/paper/prec_mh_nocont.png',
+        'figures/paper/acc_mh_nocont.png',
+        'figures/paper/fig_error_rle_mh_nocont.png',
+    script: 'plotscripts/figs2a.R'
+
+rule figS2c3d:
+    input:
+        mh_cont_raw = 'series/A3binsMH/SBasic/R4/DHuman1/C4archaicadmixture.class.xz',
+        script_ = 'plotscripts/figs2c.R',
+    output:
+        'figures/paper/acc_mh_cont.png',
+        s3d='figures/paper/fig_error_rle_mh_cont.png',
+    script: 'plotscripts/figs2c.R'
+
+rule figS2d:
+    input:
+        'series/A1binDEN/SBasic/DDen1/C4hcneaden.rds',
+        script_ = 'plotscripts/figs2d.R',
+    output: 'figures/paper/fig_cont_est_mh.png'
+    script: 'plotscripts/figs2d.R'
+
+
+
+rule figS2:
+    input:
+        template='figures/svg_templates/s_sims2.svg',
+        s2a='figures/paper/prec_mh_nocont.png',
+        s2b='figures/paper/acc_mh_nocont.png',
+        s2c='figures/paper/acc_mh_cont.png',
+        s2d='figures/paper/fig_cont_est_mh.png',
+    output:
+        'figures/rawsvg/figS2.svg'
+    run:
+        with open(input.template) as f:
+            svg = f.read()
+            svg = svg.format(**dict(input))
+        with open(output[0], 'w') as f:
+            f.write(svg)
+
+rule src_figS2:
+    input:
+        'config/sims.yaml',
+        'Snakefile',
+        'plots.snake',
+        'plotscripts/figs2a.R',
+        'plotscripts/figs2c.R',
+        'plotscripts/figs2d.R',
+        'plotscripts/lib.R',
+        mh_cont_raw = 'series/A3binsMH/SBasic/R4/DHuman1/C4archaicadmixture.class.xz',
+        mh_nocont_raw = 'series/A3binsMH/SBasic/R4/DHuman1/CN4archaicadmixture.class.xz',
+        mh_cont = 'series/A3binsMH/SBasic/DHuman1/C4archaicadmixture.rds',
+    output: 'src/figS2.zip'
+    shell: 'zip {output} {input}'
+
+
+rule figS3a:
+    input:
+        "sims/true/SBasic_0/DHuman1_0_all_haplotypes_merged.xz",
+        "series/A3binsMH/SBasic/R2/DHuman1/CN4archaicadmixture.est.xz",
+        script_ = 'plotscripts/figs3a.R',
+    output:
+        'figures/paper/fraglen1_cov.png',
+    script: 'plotscripts/figs3a.R'
+
+rule figS3b:
+    input:
+        "sims/true/SBasic_0/DHuman1_0_all_haplotypes_merged.xz",
+        "series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.est.xz",
+        script_ = 'plotscripts/figs3b.R',
+    output:
+        'figures/paper/fraglen1_cont.png',
+    script: 'plotscripts/figs3b.R'
+
+
+rule fig3:
+    input:
+        s3a='figures/paper/fraglen1_cov.png',
+        s3b='figures/paper/fraglen1_cont.png',
+        s3c='figures/paper/fig_error_rle_mh_nocont.png',
+        s3d='figures/paper/fig_error_rle_mh_cont.png',
+        template='figures/svg_templates/s_sims3.svg',
+    output:
+        'figures/rawsvg/figS3.svg'
+    run:
+        with open(input.template) as f:
+            svg = f.read()
+            svg = svg.format(**dict(input))
+        with open(output[0], 'w') as f:
+            f.write(svg)
+
+
+
+rule src_figS3:
+    input:
+        'config/sims.yaml',
+        'Snakefile',
+        'plots.snake',
+        'plotscripts/figs2a.R',
+        'plotscripts/figs2c.R',
+        'plotscripts/figs3a.R',
+        'plotscripts/figs3b.R',
+        'plotscripts/lib.R',
+        "sims/true/SBasic_0/DHuman1_0_all_haplotypes_merged.xz",
+        "series/A3binsMH/SBasic/R2/DHuman1/C4archaicadmixture.est.xz",
+    output: 'src/figS3.zip'
+    shell: 'zip {output} {input}'
+
+"""merging stuff"""
+rule svg_to_png:
+    input:
+        'figures/rawsvg/{name}.svg'
+    output:
+        'figures/paper/clean/{name}.png'
+    shell: 'inkscape -z {input} -e {output} --export-background="#fff" --export-dpi 600'
+
+
+rule sims_figs:
+    input:
+        'figures/paper/clean/figS1.png',
+        'figures/paper/clean/figS2.png',
+        'figures/paper/clean/figS3.png',
+
+
+
+
+
+

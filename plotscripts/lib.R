@@ -96,3 +96,46 @@ cont_plot <- function(df){
     theme(panel.spacing=unit(0.05, "lines")) + theme_classic(10) 
 #    theme(strip.text.y = element_text(angle = 0))
 }
+#' 1. do plot comparing run lengths vs truth for true positives
+plot_rl_accuaracy <- function(df, colvar='coverage'){
+    TP = df %>% filter(CLS== "TP")
+    G = TP %>% #filter(run_penalty==0.2) %>% 
+        mutate(coverage = as.factor(coverage), 
+               run_penalty = as.factor(run_penalty), 
+               cont=as.factor(cont)) %>%
+        mutate(len2 = round(len2/5e4) * 5e4) %>%
+        group_by(len2, bin_size, run_penalty, cont, coverage) %>% 
+        summarize(E=mean(err_start+err_end + bin_size),
+                  RE=mean( (err_start+err_end + bin_size) / len))  %>%
+        mutate(x=len2 / 1e6, y = RE) #y = E / 1e6)
+
+    P3 = G %>% 
+        ggplot(aes_string(x='x', y='y', color=colvar, group=colvar)) +
+        geom_line() + 
+        facet_grid(.~bin_size) + 
+        coord_cartesian(ylim=c(-0.1, .1) , xlim=c(0, 1.5)) +
+        xlab("Length (Mb)") + 
+        ylab("Error[L]")
+}
+plot_rl_accuaracy_age <- function(df, colvar='coverage'){
+    TP = df %>% filter(CLS== "TP")
+    G = TP %>% #filter(run_penalty==0.2) %>% 
+        filter(bin_size==5000) %>%
+        mutate(coverage = as.factor(coverage), 
+               run_penalty = as.factor(run_penalty), 
+               cont=as.factor(cont)) %>%
+        mutate(len2 = round(len2/5e4) * 5e4) %>%
+        group_by(len2, age, bin_size, run_penalty, cont, coverage) %>% 
+        summarize(E=mean(err_start+err_end + bin_size),
+                  RE=mean( (err_start+err_end + bin_size) / len))  %>%
+        mutate(x=len2 / 1e6, y = RE) #y = E / 1e6)
+
+    P3 = G %>% 
+        ggplot(aes_string(x='x', y='y', color=colvar, group=colvar)) +
+        geom_line() + 
+        facet_grid(.~age) + 
+        coord_cartesian(ylim=c(-0.1, .1) , xlim=c(0, 1.5)) +
+        xlab("Length (Mb)") + 
+        ylab("Error[L]")
+}
+

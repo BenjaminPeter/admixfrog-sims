@@ -6,3 +6,5 @@ rdebug
 .snakemake
 scripts/__pycache__/
 rle
+figures/*png
+*swp
